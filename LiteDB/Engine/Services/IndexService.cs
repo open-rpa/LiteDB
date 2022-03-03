@@ -30,10 +30,10 @@ namespace LiteDB.Engine
         /// </summary>
         public CollectionIndex CreateIndex(string name, string expr, bool unique)
         {
-            // get how many butes needed fore each head/tail (both has same size)
+            // get how many bytes needed for each head/tail (both has same size)
             var bytesLength = IndexNode.GetNodeLength(MAX_LEVEL_LENGTH, BsonValue.MinValue, out var keyLength);
 
-            // get a new empty page (each index contains your own linked nodes)
+            // get a new empty page (each index contains its own linked nodes)
             var indexPage = _snapshot.NewPage<IndexPage>();
 
             // create index ref
@@ -149,6 +149,8 @@ namespace LiteDB.Engine
             {
                 ENSURE(last.NextNode == PageAddress.Empty, "last index node must point to null");
 
+                // reload 'last' index node in case the IndexPage has gone through a defrag
+                last = this.GetNode(last.Position);
                 last.SetNextNode(node.Position);
             }
 
